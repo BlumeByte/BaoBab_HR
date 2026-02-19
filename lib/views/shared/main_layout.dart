@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -39,15 +41,23 @@ class MainLayout extends StatelessWidget {
         children: [
           Container(
             width: 260,
-            color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            color: Theme.of(context)
+                .colorScheme
+                .surfaceContainerHighest
+                .withOpacity(0.3),
             child: Column(
               children: [
                 const SizedBox(height: 26),
-                const Text('Baobab HR', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                const Text('Baobab HR',
+                    style:
+                        TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 24),
-                CircleAvatar(backgroundImage: NetworkImage(profile.avatarUrl), radius: 28),
+                CircleAvatar(
+                    backgroundImage: NetworkImage(profile.avatarUrl),
+                    radius: 28),
                 const SizedBox(height: 8),
-                Text(profile.displayName, style: const TextStyle(fontWeight: FontWeight.w600)),
+                Text(profile.displayName,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
                 const Divider(height: 24),
                 Expanded(
                   child: ListView(
