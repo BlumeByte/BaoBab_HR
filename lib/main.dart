@@ -35,12 +35,14 @@ class BaobabHRApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             themeMode: themeProvider.themeMode,
             theme: ThemeData(
-              colorScheme: ColorScheme.fromSeed(seedColor: blueSeed, brightness: Brightness.light),
+              colorScheme: ColorScheme.fromSeed(
+                  seedColor: blueSeed, brightness: Brightness.light),
               scaffoldBackgroundColor: Colors.white,
               useMaterial3: true,
             ),
             darkTheme: ThemeData(
-              colorScheme: ColorScheme.fromSeed(seedColor: blueSeed, brightness: Brightness.dark),
+              colorScheme: ColorScheme.fromSeed(
+                  seedColor: blueSeed, brightness: Brightness.dark),
               useMaterial3: true,
             ),
             routerConfig: createRouter(authProvider),
