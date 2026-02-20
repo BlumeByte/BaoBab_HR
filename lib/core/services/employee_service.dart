@@ -19,6 +19,22 @@ class HrDashboardStats {
   final int leavePending;
 }
 
+class EmployeeDashboardData {
+  const EmployeeDashboardData({
+    required this.employee,
+    required this.latestPayroll,
+    required this.payslips,
+    required this.todayAttendance,
+    required this.leaveBalances,
+  });
+
+  final EmployeeRecord employee;
+  final Map<String, dynamic>? latestPayroll;
+  final List<Map<String, dynamic>> payslips;
+  final Map<String, dynamic>? todayAttendance;
+  final Map<String, double> leaveBalances;
+}
+
 class EmployeeService {
   Future<List<EmployeeRecord>> fetchEmployees() async {
     final response = await SupabaseService.client.from('employees').select();
@@ -163,14 +179,16 @@ class EmployeeService {
     final monthStart = DateTime(today.year, today.month, 1).toIso8601String().split('T').first;
     final todayString = today.toIso8601String().split('T').first;
 
-    final employees = await SupabaseService.client.from('employees').select('id', const FetchOptions(count: CountOption.exact));
+    final employees = await SupabaseService.client
+        .from('employees')
+        .select('id', const FetchOptions(count: CountOption.exact));
     final totalEmployees = employees.count ?? 0;
 
     final presentRows = await SupabaseService.client
         .from('attendance')
         .select('id', const FetchOptions(count: CountOption.exact))
         .eq('attendance_date', todayString)
-        .ilike('status', 'present');
+        .or('status.ilike.present,status.ilike.active');
     final presentToday = presentRows.count ?? 0;
 
     final absentRows = await SupabaseService.client
@@ -245,6 +263,159 @@ class EmployeeService {
     return null;
   }
 
+  Future<EmployeeDashboardData?> fetchEmployeeDashboardData() async {
+    final employee = await fetchEmployeeForCurrentUser();
+    if (employee == null) return null;
+
+    final todayString = DateTime.now().toIso8601String().split('T').first;
+    final payslipsRows = await SupabaseService.client
+        .from('payroll')
+        .select()
+        .eq('employee_id', employee.id)
+        .order('period_end', ascending: false)
+        .limit(12);
+
+    final payslips = (payslipsRows as List).cast<Map<String, dynamic>>();
+    final latestPayroll = payslips.isEmpty ? null : payslips.first;
+
+    final attendanceRows = await SupabaseService.client
+        .from('attendance')
+        .select()
+        .eq('employee_id', employee.id)
+        .eq('attendance_date', todayString)
+        .limit(1);
+    final todayAttendance = (attendanceRows as List).isEmpty
+        ? null
+        : (attendanceRows.first as Map<String, dynamic>);
+
+    final leaveBalances = <String, double>{
+      'Annual': (await _readEmployeeNumeric(employee.id, ['leave_balance_annual', 'annual_leave_balance'])) ?? 0,
+      'Sick': (await _readEmployeeNumeric(employee.id, ['leave_balance_sick', 'sick_leave_balance'])) ?? 0,
+      'Maternity': (await _readEmployeeNumeric(employee.id, ['leave_balance_maternity', 'maternity_leave_balance'])) ?? 0,
+    };
+
+    return EmployeeDashboardData(
+      employee: employee,
+      latestPayroll: latestPayroll,
+      payslips: payslips,
+      todayAttendance: todayAttendance,
+      leaveBalances: leaveBalances,
+    );
+  }
+
+  Future<void> clockInForCurrentEmployee() async {
+    final user = await _currentAppUser();
+    final employee = await fetchEmployeeForCurrentUser();
+    if (user == null || employee == null) return;
+
+    final now = DateTime.now();
+    final date = now.toIso8601String().split('T').first;
+
+    final rows = await SupabaseService.client
+        .from('attendance')
+        .select('id,check_in_at')
+        .eq('employee_id', employee.id)
+        .eq('attendance_date', date)
+        .limit(1);
+
+    if ((rows as List).isEmpty) {
+      await SupabaseService.client.from('attendance').insert({
+        'company_id': user['company_id'],
+        'employee_id': employee.id,
+        'attendance_date': date,
+        'check_in_at': now.toIso8601String(),
+        'status': 'active',
+      });
+      return;
+    }
+
+    final existing = rows.first as Map<String, dynamic>;
+    await SupabaseService.client.from('attendance').update({
+      if (existing['check_in_at'] == null) 'check_in_at': now.toIso8601String(),
+      'status': 'active',
+    }).eq('id', existing['id']);
+  }
+
+  Future<void> clockOutForCurrentEmployee() async {
+    final employee = await fetchEmployeeForCurrentUser();
+    if (employee == null) return;
+
+    final now = DateTime.now();
+    final date = now.toIso8601String().split('T').first;
+
+    final rows = await SupabaseService.client
+        .from('attendance')
+        .select()
+        .eq('employee_id', employee.id)
+        .eq('attendance_date', date)
+        .limit(1);
+    if ((rows as List).isEmpty) return;
+
+    final row = rows.first as Map<String, dynamic>;
+    final checkInRaw = row['check_in_at']?.toString();
+    final checkIn = checkInRaw == null ? null : DateTime.tryParse(checkInRaw);
+
+    final payload = <String, dynamic>{
+      'check_out_at': now.toIso8601String(),
+      'status': 'present',
+    };
+
+    if (checkIn != null) {
+      final hoursWorked = now.difference(checkIn).inMinutes / 60;
+      payload['hours_worked'] = hoursWorked;
+    }
+
+    try {
+      await SupabaseService.client.from('attendance').update(payload).eq('id', row['id']);
+    } on PostgrestException catch (e) {
+      if (!e.message.toLowerCase().contains('hours_worked')) rethrow;
+      payload.remove('hours_worked');
+      await SupabaseService.client.from('attendance').update(payload).eq('id', row['id']);
+    }
+
+    await _incrementDaysWorked(employee.id, now);
+  }
+
+  Future<void> _incrementDaysWorked(String employeeId, DateTime now) async {
+    final periodStart = DateTime(now.year, now.month, 1).toIso8601String().split('T').first;
+    final periodEnd = DateTime(now.year, now.month + 1, 0).toIso8601String().split('T').first;
+
+    try {
+      final rows = await SupabaseService.client
+          .from('payroll')
+          .select('id,days_worked,basic_salary,allowances,deductions,taxes')
+          .eq('employee_id', employeeId)
+          .eq('period_start', periodStart)
+          .eq('period_end', periodEnd)
+          .limit(1);
+
+      if ((rows as List).isEmpty) {
+        final user = await _currentAppUser();
+        if (user == null) return;
+        await SupabaseService.client.from('payroll').insert({
+          'company_id': user['company_id'],
+          'employee_id': employeeId,
+          'period_start': periodStart,
+          'period_end': periodEnd,
+          'basic_salary': 0,
+          'allowances': 0,
+          'deductions': 0,
+          'taxes': 0,
+          'days_worked': 1,
+        });
+      } else {
+        final row = rows.first as Map<String, dynamic>;
+        final current = (row['days_worked'] as num?)?.toInt() ?? 0;
+        await SupabaseService.client
+            .from('payroll')
+            .update({'days_worked': current + 1})
+            .eq('id', row['id']);
+      }
+    } on PostgrestException catch (e) {
+      if (!e.message.toLowerCase().contains('days_worked')) rethrow;
+    }
+  }
+
   Future<List<Map<String, dynamic>>> fetchAnnouncements() async {
     try {
       final response = await SupabaseService.client
@@ -315,5 +486,22 @@ class EmployeeService {
         .select('id,company_id')
         .eq('auth_user_id', authUser.id)
         .maybeSingle();
+  }
+
+  Future<double?> _readEmployeeNumeric(String employeeId, List<String> columns) async {
+    for (final column in columns) {
+      try {
+        final row = await SupabaseService.client
+            .from('employees')
+            .select(column)
+            .eq('id', employeeId)
+            .maybeSingle();
+        final value = row?[column];
+        if (value is num) return value.toDouble();
+      } on PostgrestException catch (e) {
+        if (!e.message.toLowerCase().contains('does not exist')) rethrow;
+      }
+    }
+    return null;
   }
 }

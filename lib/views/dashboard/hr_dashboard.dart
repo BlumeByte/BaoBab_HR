@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/services/employee_service.dart';
+import '../../core/services/supabase_service.dart';
 
 class HrDashboard extends StatefulWidget {
   const HrDashboard({super.key});
@@ -16,11 +18,44 @@ class _HrDashboardState extends State<HrDashboard> {
   List<Map<String, dynamic>> _pendingLeaves = const [];
   bool _loading = true;
   String? _error;
+  RealtimeChannel? _channel;
 
   @override
   void initState() {
     super.initState();
     _load();
+    _subscribeRealtime();
+  }
+
+  void _subscribeRealtime() {
+    _channel = SupabaseService.client.channel('hr-live-updates')
+      ..onPostgresChanges(
+        event: PostgresChangeEvent.all,
+        schema: 'public',
+        table: 'attendance',
+        callback: (_) => _load(),
+      )
+      ..onPostgresChanges(
+        event: PostgresChangeEvent.all,
+        schema: 'public',
+        table: 'leaves',
+        callback: (_) => _load(),
+      )
+      ..onPostgresChanges(
+        event: PostgresChangeEvent.all,
+        schema: 'public',
+        table: 'leave_requests',
+        callback: (_) => _load(),
+      )
+      ..subscribe();
+  }
+
+  @override
+  void dispose() {
+    if (_channel != null) {
+      SupabaseService.client.removeChannel(_channel!);
+    }
+    super.dispose();
   }
 
   Future<void> _load() async {
