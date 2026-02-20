@@ -3,6 +3,7 @@ class RouteNames {
   static const forgotPassword = '/forgot-password';
   static const dashboard = '/dashboard';
   static const employees = '/employees';
+  static const employeeProfile = '/my-profile';
   static const leave = '/leave';
   static const attendance = '/attendance';
   static const performance = '/performance';

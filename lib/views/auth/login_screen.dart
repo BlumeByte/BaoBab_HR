@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/auth_provider.dart';
+import '../../core/providers/profile_provider.dart';
 import '../../core/router/route_names.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -66,6 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   .read<AuthProvider>()
                                   .login(_emailController.text, _passwordController.text);
                               if (success && context.mounted) {
+                                await context.read<ProfileProvider>().loadProfile();
                                 context.go(RouteNames.dashboard);
                               }
                             },
