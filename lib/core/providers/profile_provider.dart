@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../constants/app_constants.dart';
 import '../services/supabase_service.dart';
 
@@ -24,28 +25,38 @@ class ProfileProvider extends ChangeNotifier {
 
       if (profile != null) {
         _displayName = (profile['full_name'] ?? _displayName).toString();
-        _avatarUrl = (profile['avatar_url'] ?? AppConstants.defaultAvatar).toString();
+        _avatarUrl =
+            (profile['avatar_url'] ?? AppConstants.defaultAvatar).toString();
         _role = (profile['role'] ?? _role).toString();
       } else {
-        _displayName = (user.userMetadata?['full_name'] ?? _displayName).toString();
-        _avatarUrl = (user.userMetadata?['avatar_url'] ?? AppConstants.defaultAvatar).toString();
+        _displayName =
+            (user.userMetadata?['full_name'] ?? _displayName).toString();
+        _avatarUrl =
+            (user.userMetadata?['avatar_url'] ?? AppConstants.defaultAvatar)
+                .toString();
         _role = (user.userMetadata?['role'] ?? _role).toString();
       }
       notifyListeners();
     } catch (_) {
-      _displayName = (user.userMetadata?['full_name'] ?? _displayName).toString();
-      _avatarUrl = (user.userMetadata?['avatar_url'] ?? AppConstants.defaultAvatar).toString();
+      _displayName =
+          (user.userMetadata?['full_name'] ?? _displayName).toString();
+      _avatarUrl =
+          (user.userMetadata?['avatar_url'] ?? AppConstants.defaultAvatar)
+              .toString();
       _role = (user.userMetadata?['role'] ?? _role).toString();
       notifyListeners();
     }
   }
 
-  Future<void> updateProfile({required String name, required String avatarUrl}) async {
+  Future<void> updateProfile(
+      {required String name, required String avatarUrl}) async {
     final user = SupabaseService.client.auth.currentUser;
     if (user == null) return;
 
     final nextName = name.trim().isEmpty ? _displayName : name.trim();
-    final nextAvatar = avatarUrl.trim().isEmpty ? AppConstants.defaultAvatar : avatarUrl.trim();
+    final nextAvatar = avatarUrl.trim().isEmpty
+        ? AppConstants.defaultAvatar
+        : avatarUrl.trim();
 
     await SupabaseService.client.from('profiles').upsert({
       'id': user.id,
