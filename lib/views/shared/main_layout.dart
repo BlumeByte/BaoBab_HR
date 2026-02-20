@@ -16,6 +16,7 @@ class NavItem {
 
 const navItems = [
   NavItem('Dashboard', Icons.dashboard_outlined, RouteNames.dashboard),
+  NavItem('My Profile', Icons.account_circle_outlined, RouteNames.employeeProfile),
   NavItem('Employees', Icons.people_alt_outlined, RouteNames.employees),
   NavItem('Leave', Icons.beach_access_outlined, RouteNames.leave),
   NavItem('Attendance', Icons.access_time, RouteNames.attendance),
@@ -34,38 +35,40 @@ class MainLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final profile = context.watch<ProfileProvider>();
+    final auth = context.watch<AuthProvider>();
     final location = GoRouterState.of(context).uri.path;
+    final visibleNavItems = auth.isEmployeeUser
+        ? navItems.where((item) => item.route == RouteNames.employeeProfile || item.route == RouteNames.documents).toList()
+        : navItems;
 
     return Scaffold(
       body: Row(
         children: [
           Container(
             width: 260,
-            color: Theme.of(context)
-                .colorScheme
-                .surfaceContainerHighest
-                .withOpacity(0.3),
+            color: const Color(0xFF4FC3F7),
             child: Column(
               children: [
                 const SizedBox(height: 26),
                 const Text('Baobab HR',
-                    style:
-                        TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
                 const SizedBox(height: 24),
                 CircleAvatar(
                     backgroundImage: NetworkImage(profile.avatarUrl),
                     radius: 28),
                 const SizedBox(height: 8),
                 Text(profile.displayName,
-                    style: const TextStyle(fontWeight: FontWeight.w600)),
-                const Divider(height: 24),
+                    style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white)),
+                const Divider(height: 24, color: Colors.white70),
                 Expanded(
                   child: ListView(
-                    children: navItems
+                    children: visibleNavItems
                         .map(
                           (item) => ListTile(
-                            leading: Icon(item.icon),
-                            title: Text(item.label),
+                            leading: Icon(item.icon, color: Colors.white),
+                            title: Text(item.label, style: const TextStyle(color: Colors.white)),
+                            selectedColor: Colors.white,
+                            selectedTileColor: Colors.white24,
                             selected: location == item.route,
                             onTap: () => context.go(item.route),
                           ),
@@ -74,8 +77,8 @@ class MainLayout extends StatelessWidget {
                   ),
                 ),
                 ListTile(
-                  leading: const Icon(Icons.logout),
-                  title: const Text('Log out'),
+                  leading: const Icon(Icons.logout, color: Colors.white),
+                  title: const Text('Log out', style: TextStyle(color: Colors.white)),
                   onTap: () async {
                     await context.read<AuthProvider>().logout();
                     if (context.mounted) context.go(RouteNames.login);

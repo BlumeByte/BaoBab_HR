@@ -6,17 +6,26 @@ class AuthProvider extends ChangeNotifier {
   bool _isLoggedIn = false;
   bool _isLoading = false;
   String _userEmail = '';
+  String _userId = '';
+  String _userRole = 'hr';
   String? _errorMessage;
 
   bool get isLoggedIn => _isLoggedIn;
   bool get isLoading => _isLoading;
   String get userEmail => _userEmail;
+  String get userId => _userId;
+  String get userRole => _userRole;
+  bool get isEmployeeUser => _userRole.toLowerCase() == 'employee';
   String? get errorMessage => _errorMessage;
 
   Future<void> restoreSession() async {
     final user = SupabaseService.client.auth.currentUser;
     _isLoggedIn = user != null;
     _userEmail = user?.email ?? '';
+    _userId = user?.id ?? '';
+    if (user != null) {
+      await _loadRole(user);
+    }
     notifyListeners();
   }
 
@@ -34,6 +43,10 @@ class AuthProvider extends ChangeNotifier {
       final user = response.user;
       _isLoggedIn = user != null;
       _userEmail = user?.email ?? '';
+      _userId = user?.id ?? '';
+      if (user != null) {
+        await _loadRole(user);
+      }
       return _isLoggedIn;
     } on AuthException catch (e) {
       _errorMessage = e.message;
@@ -49,10 +62,25 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> _loadRole(User user) async {
+    try {
+      final profile = await SupabaseService.client
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle();
+      _userRole = (profile?['role'] ?? user.userMetadata?['role'] ?? 'hr').toString();
+    } catch (_) {
+      _userRole = (user.userMetadata?['role'] ?? 'hr').toString();
+    }
+  }
+
   Future<void> logout() async {
     await SupabaseService.client.auth.signOut();
     _isLoggedIn = false;
     _userEmail = '';
+    _userId = '';
+    _userRole = 'hr';
     _errorMessage = null;
     notifyListeners();
   }

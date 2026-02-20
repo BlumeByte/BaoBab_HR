@@ -1,44 +1,38 @@
 import 'package:flutter/material.dart';
-import '../shared/section_template.dart';
+
+import '../shared/module_screen_scaffold.dart';
 
 class HrDashboard extends StatelessWidget {
   const HrDashboard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const SectionTemplate(
+    return ModuleScreenScaffold(
       title: 'HR Dashboard',
-      description: 'BambooHR-inspired home with workforce summary, quick access, and key metrics.',
-      icon: Icons.dashboard,
-      actions: [
-        _MetricCard(label: 'Employees', value: '128'),
-        _MetricCard(label: 'Open Roles', value: '14'),
-        _MetricCard(label: 'On Leave', value: '9'),
-        _MetricCard(label: 'Pending Approvals', value: '6'),
+      description: 'Monitor workforce status, approvals, and company-wide priorities.',
+      stats: const [
+        StatItem('Active', '128', Icons.groups_outlined),
+        StatItem('Pending', '14', Icons.pending_actions_outlined),
+        StatItem('Completed', '86%', Icons.task_alt_outlined),
       ],
-    );
-  }
-}
-
-class _MetricCard extends StatelessWidget {
-  const _MetricCard({required this.label, required this.value});
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 200,
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Text(value, style: Theme.of(context).textTheme.headlineMedium),
-              Text(label),
-            ],
-          ),
-        ),
+      pieData: const [
+        PieSliceData(label: 'Completed', value: 58, color: Colors.blue),
+        PieSliceData(label: 'In Progress', value: 28, color: Colors.lightBlue),
+        PieSliceData(label: 'Pending', value: 14, color: Colors.orange),
+      ],
+      highlights: const [
+        'Automated workflows reduce manual processing time.',
+        'Critical tasks are now grouped and prioritized.',
+        'Insights are ready for provider and API integration.',
+      ],
+      primaryAction: FilledButton.icon(
+        onPressed: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Action executed successfully.')),
+          );
+        },
+        icon: const Icon(Icons.add),
+        label: const Text('Quick action'),
       ),
     );
   }

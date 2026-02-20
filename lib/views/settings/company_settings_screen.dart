@@ -1,7 +1,10 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../core/providers/profile_provider.dart';
 import '../../core/providers/theme_provider.dart';
+import '../../core/services/storage_service.dart';
 
 class CompanySettingsScreen extends StatefulWidget {
   const CompanySettingsScreen({super.key});
@@ -13,6 +16,8 @@ class CompanySettingsScreen extends StatefulWidget {
 class _CompanySettingsScreenState extends State<CompanySettingsScreen> {
   late final TextEditingController _nameController;
   late final TextEditingController _avatarController;
+  final _storageService = StorageService();
+  bool _uploading = false;
 
   @override
   void initState() {
@@ -27,6 +32,23 @@ class _CompanySettingsScreenState extends State<CompanySettingsScreen> {
     _nameController.dispose();
     _avatarController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickAndUploadProfileImage() async {
+    setState(() => _uploading = true);
+    try {
+      final result = await FilePicker.platform.pickFiles(type: FileType.image, withData: true);
+      if (result == null || result.files.single.bytes == null) return;
+      final file = result.files.single;
+      final fileName = file.name;
+      final url = await _storageService.uploadProfileImage(
+        fileName: fileName,
+        bytes: file.bytes!,
+      );
+      _avatarController.text = url;
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
   }
 
   @override
@@ -44,6 +66,22 @@ class _CompanySettingsScreenState extends State<CompanySettingsScreen> {
           TextField(controller: _nameController, decoration: const InputDecoration(labelText: 'Profile Name')),
           const SizedBox(height: 12),
           TextField(controller: _avatarController, decoration: const InputDecoration(labelText: 'Profile Image URL')),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 12,
+            children: [
+              OutlinedButton.icon(
+                onPressed: _uploading ? null : _pickAndUploadProfileImage,
+                icon: const Icon(Icons.upload_file),
+                label: Text(_uploading ? 'Uploading...' : 'Upload profile image'),
+              ),
+              if (_avatarController.text.isNotEmpty)
+                CircleAvatar(
+                  radius: 22,
+                  backgroundImage: NetworkImage(_avatarController.text),
+                ),
+            ],
+          ),
           const SizedBox(height: 20),
           SwitchListTile(
             title: const Text('Dark mode'),
@@ -52,11 +90,12 @@ class _CompanySettingsScreenState extends State<CompanySettingsScreen> {
           ),
           const SizedBox(height: 20),
           FilledButton(
-            onPressed: () {
-              context.read<ProfileProvider>().updateProfile(
+            onPressed: () async {
+              await context.read<ProfileProvider>().updateProfile(
                     name: _nameController.text,
                     avatarUrl: _avatarController.text,
                   );
+              if (!mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Profile updated')),
               );

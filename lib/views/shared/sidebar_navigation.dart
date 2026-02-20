@@ -7,6 +7,17 @@ class SidebarNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Drawer(child: ListView(children: children));
+    return Drawer(
+      child: Container(
+        color: const Color(0xFF4FC3F7),
+        child: DefaultTextStyle(
+          style: const TextStyle(color: Colors.white),
+          child: IconTheme(
+            data: const IconThemeData(color: Colors.white),
+            child: ListView(children: children),
+          ),
+        ),
+      ),
+    );
   }
 }
