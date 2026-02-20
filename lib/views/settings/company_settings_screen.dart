@@ -52,8 +52,8 @@ class _CompanySettingsScreenState extends State<CompanySettingsScreen> {
           ),
           const SizedBox(height: 20),
           FilledButton(
-            onPressed: () {
-              context.read<ProfileProvider>().updateProfile(
+            onPressed: () async {
+              await context.read<ProfileProvider>().updateProfile(
                     name: _nameController.text,
                     avatarUrl: _avatarController.text,
                   );

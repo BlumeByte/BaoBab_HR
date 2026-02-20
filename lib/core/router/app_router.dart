@@ -7,6 +7,7 @@ import '../../views/auth/login_screen.dart';
 import '../../views/dashboard/hr_dashboard.dart';
 import '../../views/documents/document_library_screen.dart';
 import '../../views/employees/employee_directory_screen.dart';
+import '../../views/employees/employee_profile_screen.dart';
 import '../../views/leave/leave_request_screen.dart';
 import '../../views/performance/goals_screen.dart';
 import '../../views/recruitment/jobs_screen.dart';
@@ -25,7 +26,15 @@ GoRouter createRouter(AuthProvider authProvider) {
       final isPublic = location == RouteNames.login || location == RouteNames.forgotPassword;
 
       if (!loggedIn && !isPublic) return RouteNames.login;
-      if (loggedIn && isPublic) return RouteNames.dashboard;
+
+      if (loggedIn && isPublic) {
+        return authProvider.isEmployeeUser ? RouteNames.employeeProfile : RouteNames.dashboard;
+      }
+
+      if (loggedIn && authProvider.isEmployeeUser && location != RouteNames.employeeProfile) {
+        return RouteNames.employeeProfile;
+      }
+
       return null;
     },
     routes: [
@@ -35,6 +44,7 @@ GoRouter createRouter(AuthProvider authProvider) {
         builder: (_, __, child) => MainLayout(child: child),
         routes: [
           GoRoute(path: RouteNames.dashboard, builder: (_, __) => const HrDashboard()),
+          GoRoute(path: RouteNames.employeeProfile, builder: (_, __) => const EmployeeProfileScreen()),
           GoRoute(path: RouteNames.employees, builder: (_, __) => const EmployeeDirectoryScreen()),
           GoRoute(path: RouteNames.leave, builder: (_, __) => const LeaveRequestScreen()),
           GoRoute(path: RouteNames.attendance, builder: (_, __) => const TimesheetScreen()),
