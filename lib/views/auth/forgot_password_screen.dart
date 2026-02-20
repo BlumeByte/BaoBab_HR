@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+import '../../core/providers/auth_provider.dart';
 import '../../core/router/route_names.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -20,6 +23,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
     return Scaffold(
       body: Center(
         child: Card(
@@ -37,14 +41,21 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
-                      onPressed: () {
+                      onPressed: () async {
+                        await context.read<AuthProvider>().sendPasswordReset(_emailController.text);
+                        if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Password reset flow can be configured in Supabase dashboard.')),
+                          const SnackBar(content: Text('Password reset email sent if account exists.')),
                         );
                       },
                       child: const Text('Send reset link'),
                     ),
                   ),
+                  if (auth.errorMessage != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(auth.errorMessage!, style: const TextStyle(color: Colors.red)),
+                    ),
                   TextButton(
                     onPressed: () => context.go(RouteNames.login),
                     child: const Text('Back to login'),

@@ -6,14 +6,14 @@ import '../../core/providers/auth_provider.dart';
 import '../../core/providers/profile_provider.dart';
 import '../../core/router/route_names.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class EmployeeLoginScreen extends StatefulWidget {
+  const EmployeeLoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<EmployeeLoginScreen> createState() => _EmployeeLoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _EmployeeLoginScreenState extends State<EmployeeLoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
@@ -24,16 +24,9 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  String _homeRoute(AuthProvider auth) {
-    if (auth.isSuperAdmin) return RouteNames.superDashboard;
-    if (auth.isHrAdmin) return RouteNames.hrDashboard;
-    return RouteNames.employeeDashboard;
-  }
-
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-
     return Scaffold(
       body: Center(
         child: Card(
@@ -44,7 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Welcome to Baobab HR', style: Theme.of(context).textTheme.headlineSmall),
+                  Text('Employee Login', style: Theme.of(context).textTheme.headlineSmall),
                   const SizedBox(height: 20),
                   TextField(controller: _emailController, decoration: const InputDecoration(labelText: 'Email')),
                   const SizedBox(height: 12),
@@ -57,15 +50,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: () => context.go(RouteNames.forgotPassword),
-                      child: const Text('Forgot password?'),
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () => context.go(RouteNames.employeeLogin),
-                      child: const Text('Employee login'),
+                      onPressed: () => context.go(RouteNames.login),
+                      child: const Text('Back to main login'),
                     ),
                   ),
                   if (auth.errorMessage != null)
@@ -80,8 +66,13 @@ class _LoginScreenState extends State<LoginScreen> {
                               final success = await context
                                   .read<AuthProvider>()
                                   .login(_emailController.text, _passwordController.text);
-
                               if (!success || !context.mounted) return;
+
+                              final authState = context.read<AuthProvider>();
+                              if (!authState.isEmployeeUser) {
+                                context.go(RouteNames.unauthorized);
+                                return;
+                              }
 
                               await context.read<ProfileProvider>().loadProfile();
                               if (!context.mounted) return;
@@ -91,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 return;
                               }
 
-                              context.go(_homeRoute(context.read<AuthProvider>()));
+                              context.go(RouteNames.employeeDashboard);
                             },
                       child: auth.isLoading
                           ? const SizedBox(
@@ -99,7 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               width: 18,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text('Login'),
+                          : const Text('Login as employee'),
                     ),
                   ),
                 ],

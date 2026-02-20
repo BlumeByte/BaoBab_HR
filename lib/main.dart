@@ -21,8 +21,8 @@ class BaobabHRApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()..restoreSession()),
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => ProfileProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()..loadThemePreference()),
+        ChangeNotifierProvider(create: (_) => ProfileProvider()..loadProfile()),
       ],
       child: Builder(
         builder: (context) {
