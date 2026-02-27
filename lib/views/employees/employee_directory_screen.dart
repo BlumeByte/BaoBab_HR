@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../../core/constants/app_constants.dart';
 import '../../core/services/employee_service.dart';
 import '../../models/employee_model.dart';
@@ -15,7 +14,7 @@ class EmployeeDirectoryScreen extends StatefulWidget {
 class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
   final _service = EmployeeService();
   bool _loading = true;
-  List<EmployeeRecord> _employees = const [];
+  List<EmployeeRecord> _employees = [];
   String? _error;
 
   @override
@@ -30,16 +29,12 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
       _error = null;
     });
     try {
-      final data = await _service.fetchEmployees();
+      final employees = await _service.fetchEmployees();
       if (!mounted) return;
-      setState(() {
-        _employees = data;
-      });
+      setState(() => _employees = employees);
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _error = 'Unable to load employees: $e';
-      });
+      setState(() => _error = 'Unable to load employees: $e');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -144,9 +139,8 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
                         style: Theme.of(context).textTheme.headlineSmall),
                     const SizedBox(height: 8),
                     Text(
-                      'Search teammates, review departments, and quickly access employee profiles.',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
+                        'Search teammates, review departments, and quickly access employee profiles.',
+                        style: Theme.of(context).textTheme.bodyMedium),
                   ],
                 ),
               ),

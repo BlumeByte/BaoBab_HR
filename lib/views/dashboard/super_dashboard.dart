@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../core/services/super_admin_service.dart';
 
+/// --------------------------
+/// WIDGET: SuperDashboard
+/// --------------------------
 class SuperDashboard extends StatefulWidget {
   const SuperDashboard({super.key});
 
@@ -11,7 +14,7 @@ class SuperDashboard extends StatefulWidget {
 
 class _SuperDashboardState extends State<SuperDashboard> {
   final _service = SuperAdminService();
-  SuperAdminMetrics? _metrics;
+  late SuperAdminMetrics _metrics; // non-nullable
   bool _loading = true;
   String? _error;
 
@@ -28,9 +31,7 @@ class _SuperDashboardState extends State<SuperDashboard> {
     });
 
     try {
-      final metrics = await _service.fetchGlobalMetrics();
-      if (!mounted) return;
-      setState(() => _metrics = metrics);
+      _metrics = await _service.fetchGlobalMetrics(); // direct assignment
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = 'Unable to load super admin metrics: $e');
@@ -44,24 +45,44 @@ class _SuperDashboardState extends State<SuperDashboard> {
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_error != null) return Center(child: Text(_error!));
 
-    final metrics = _metrics;
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView(
         padding: const EdgeInsets.all(24),
         children: [
-          Text('Super Admin Dashboard', style: Theme.of(context).textTheme.headlineSmall),
+          Text(
+            'Super Admin Dashboard',
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
           const SizedBox(height: 8),
-          const Text('Cross-company controls, tenant analytics, and platform governance.'),
+          const Text(
+            'Cross-company controls, tenant analytics, and platform governance.',
+          ),
           const SizedBox(height: 16),
           Wrap(
             spacing: 12,
             runSpacing: 12,
             children: [
-              _MetricCard(label: 'Companies', value: '${metrics?.totalCompanies ?? 0}', icon: Icons.apartment_outlined),
-              _MetricCard(label: 'Active Subs', value: '${metrics?.activeSubscriptions ?? 0}', icon: Icons.verified_outlined),
-              _MetricCard(label: 'Employees', value: '${metrics?.totalEmployees ?? 0}', icon: Icons.groups_outlined),
-              _MetricCard(label: 'Monthly Revenue', value: '${metrics?.monthlyRevenue.toStringAsFixed(2) ?? '0.00'}', icon: Icons.payments_outlined),
+              _MetricCard(
+                label: 'Companies',
+                value: '${_metrics.totalCompanies}',
+                icon: Icons.apartment_outlined,
+              ),
+              _MetricCard(
+                label: 'Active Subs',
+                value: '${_metrics.activeSubscriptions}',
+                icon: Icons.verified_outlined,
+              ),
+              _MetricCard(
+                label: 'Employees',
+                value: '${_metrics.totalEmployees}',
+                icon: Icons.groups_outlined,
+              ),
+              _MetricCard(
+                label: 'Monthly Revenue',
+                value: '\$${_metrics.monthlyRevenue.toStringAsFixed(2)}',
+                icon: Icons.payments_outlined,
+              ),
             ],
           ),
         ],
@@ -70,8 +91,15 @@ class _SuperDashboardState extends State<SuperDashboard> {
   }
 }
 
+/// --------------------------
+/// WIDGET: _MetricCard
+/// --------------------------
 class _MetricCard extends StatelessWidget {
-  const _MetricCard({required this.label, required this.value, required this.icon});
+  const _MetricCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
 
   final String label;
   final String value;
@@ -86,12 +114,15 @@ class _MetricCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Icon(icon),
+              Icon(icon, size: 36),
               const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(value, style: Theme.of(context).textTheme.titleLarge),
+                  Text(
+                    value,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   Text(label),
                 ],
               ),

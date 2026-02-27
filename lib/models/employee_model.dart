@@ -1,10 +1,4 @@
-/// Stub representation of an employee record.
-///
-/// This minimal model includes fields that are commonly used by the
-/// application: an identifier, full name, email, department, job
-/// title, status, and avatar URL. In a full implementation you
-/// might add additional fields and helper methods, or use code
-/// generation to produce this class from your database schema.
+/// Employee model
 class EmployeeRecord {
   const EmployeeRecord({
     required this.id,
@@ -23,4 +17,16 @@ class EmployeeRecord {
   final String jobTitle;
   final String status;
   final String avatarUrl;
+
+  factory EmployeeRecord.fromJson(Map<String, dynamic> json) {
+    return EmployeeRecord(
+      id: json['id'] ?? '',
+      fullName: json['full_name'] ?? '',
+      email: json['email'] ?? '',
+      department: json['department'] ?? '',
+      jobTitle: json['job_title'] ?? '',
+      status: json['status'] ?? 'active',
+      avatarUrl: json['avatar_url'] ?? '',
+    );
+  }
 }

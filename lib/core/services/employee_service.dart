@@ -1,38 +1,80 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/employee_model.dart';
+import '../../models/leave_model.dart';
+import '../../models/timesheet_model.dart';
 
-/// Stub implementation of the employee service.
-///
-/// This minimal version returns an empty list from [fetchEmployees]. In
-/// a production environment, replace this stub with an implementation
-/// that queries your data source (for example, via Supabase or a REST
-/// API) and returns a list of [EmployeeRecord] objects.
 class EmployeeService {
-  EmployeeService();
+  final supabase = Supabase.instance.client;
 
-  /// Fetches all employees for the current company.
+  // Fetch all employees
   Future<List<EmployeeRecord>> fetchEmployees() async {
-    return const [];
+    final data = await supabase.from('employees').select();
+    return (data as List<dynamic>)
+        .map((e) => EmployeeRecord.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
-  /// Fetches a list of pending leave requests.
-  ///
-  /// This stubbed implementation returns an empty list by default. In a real
-  /// application you would connect to your data source (for example Supabase)
-  /// and query the `leaves` table for rows where the status is `pending`.
-  /// The optional [limit] argument can be used to limit the number of
-  /// records returned from the backend.
-  Future<List<Map<String, dynamic>>> fetchPendingLeaves({int limit = 20}) async {
-    return const [];
+  // Create employee
+  Future<void> createEmployee({
+    required String fullName,
+    required String email,
+    required String department,
+    required String jobTitle,
+    required String avatarUrl,
+  }) async {
+    await supabase.from('employees').insert({
+      'full_name': fullName,
+      'email': email,
+      'department': department,
+      'job_title': jobTitle,
+      'avatar_url': avatarUrl,
+      'status': 'active',
+    });
   }
 
-  /// Fetches the current user's leave requests.
-  ///
-  /// This stubbed implementation returns an empty list by default. In a real
-  /// application you would connect to your data source (for example Supabase)
-  /// and query the `leaves` table for rows associated with the current
-  /// employee. The optional [limit] argument can be used to limit the
-  /// number of records returned from the backend.
-  Future<List<Map<String, dynamic>>> fetchMyLeaves({int limit = 20}) async {
-    return const [];
+  // Send login link via Supabase Auth
+  Future<void> sendLoginLink(String email) async {
+    await supabase.auth.signInWithOtp(email: email);
+  }
+
+  // Fetch employee by email
+  Future<EmployeeRecord?> fetchEmployeeByEmail(String email) async {
+    final data =
+        await supabase.from('employees').select().eq('email', email).limit(1);
+    if ((data as List).isEmpty) return null;
+    return EmployeeRecord.fromJson(data[0] as Map<String, dynamic>);
+  }
+
+  // Fetch pending leaves
+  Future<List<LeaveRecord>> fetchPendingLeaves({int limit = 20}) async {
+    final data = await supabase
+        .from('leaves')
+        .select()
+        .eq('status', 'pending')
+        .limit(limit);
+    return (data as List<dynamic>)
+        .map((e) => LeaveRecord.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  // Fetch my leaves by email
+  Future<List<LeaveRecord>> fetchMyLeaves(String email,
+      {int limit = 20}) async {
+    final data = await supabase
+        .from('leaves')
+        .select()
+        .eq('employee_email', email)
+        .limit(limit);
+    return (data as List<dynamic>)
+        .map((e) => LeaveRecord.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  // Fetch attendance logs
+  Future<List<TimesheetRecord>> fetchAttendanceLogs({int limit = 30}) async {
+    final data = await supabase.from('attendance_logs').select().limit(limit);
+    return (data as List<dynamic>)
+        .map((e) => TimesheetRecord.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 }
