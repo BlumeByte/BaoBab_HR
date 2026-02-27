@@ -2,7 +2,22 @@ import 'package:flutter/material.dart';
 
 import '../shared/module_screen_scaffold.dart';
 
-class AuditLogsScreen extends StatelessWidget {
+// Import the SuperAdminService from the core services layer. This
+// service exposes a `fetchAuditLogs` method used by the state class
+// below. Without this import the compiler would complain that
+// `SuperAdminService` is undefined. The relative path goes up two
+// directories because this file lives under `lib/views/settings`.
+import '../../core/services/super_admin_service.dart';
+
+/// Displays a paginated list of audit logs for the super admin.
+///
+/// This screen uses a [StatefulWidget] so that it can manage
+/// asynchronous loading of data via [SuperAdminService.fetchAuditLogs].
+/// The `_rows` list holds the fetched audit entries and `_loading`
+/// flags whether the data is still being loaded. Currently the
+/// list of rows is unused in the UI scaffold; in a complete
+/// implementation you would display the logs in a table or list.
+class AuditLogsScreen extends StatefulWidget {
   const AuditLogsScreen({super.key});
 
   @override

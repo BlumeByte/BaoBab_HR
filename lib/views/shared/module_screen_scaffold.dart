@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+/// A simple statistic item used by [ModuleScreenScaffold].
 class StatItem {
   const StatItem(this.label, this.value, this.icon);
 
@@ -10,6 +11,8 @@ class StatItem {
   final IconData icon;
 }
 
+/// Represents a single slice in the pie chart used by
+/// [ModuleScreenScaffold].
 class PieSliceData {
   const PieSliceData({required this.label, required this.value, required this.color});
 
@@ -18,6 +21,12 @@ class PieSliceData {
   final Color color;
 }
 
+/// A scaffold-like widget tailored for dashboard-style modules.
+///
+/// It presents a title, description, optional stats cards, a pie
+/// chart, highlights list, and a primary action button. Widgets can
+/// omit any of the optional sections by providing empty lists or null
+/// values.
 class ModuleScreenScaffold extends StatelessWidget {
   const ModuleScreenScaffold({
     super.key,
@@ -142,6 +151,10 @@ class ModuleScreenScaffold extends StatelessWidget {
   }
 }
 
+/// A simple pie chart widget used by [ModuleScreenScaffold] to draw
+/// distributions. This widget calculates the proportion of each
+/// slice and draws arcs accordingly. It also shows a legend next to
+/// the chart.
 class _SimplePieChart extends StatelessWidget {
   const _SimplePieChart({required this.data});
 
@@ -186,6 +199,7 @@ class _SimplePieChart extends StatelessWidget {
   }
 }
 
+/// A custom painter used by [_SimplePieChart] to render pie slices.
 class _PieChartPainter extends CustomPainter {
   const _PieChartPainter({required this.data, required this.total});
 

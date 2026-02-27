@@ -8,7 +8,8 @@ class EmployeeDirectoryScreen extends StatefulWidget {
   const EmployeeDirectoryScreen({super.key});
 
   @override
-  State<EmployeeDirectoryScreen> createState() => _EmployeeDirectoryScreenState();
+  State<EmployeeDirectoryScreen> createState() =>
+      _EmployeeDirectoryScreenState();
 }
 
 class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
@@ -49,7 +50,8 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
     final emailController = TextEditingController();
     final deptController = TextEditingController();
     final roleController = TextEditingController();
-    final avatarController = TextEditingController(text: AppConstants.defaultAvatar);
+    final avatarController =
+        TextEditingController(text: AppConstants.defaultAvatar);
 
     final created = await showDialog<bool>(
       context: context,
@@ -59,23 +61,39 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Full Name')),
-              TextField(controller: emailController, decoration: const InputDecoration(labelText: 'Email')),
-              TextField(controller: deptController, decoration: const InputDecoration(labelText: 'Department')),
-              TextField(controller: roleController, decoration: const InputDecoration(labelText: 'Job Title')),
-              TextField(controller: avatarController, decoration: const InputDecoration(labelText: 'Avatar URL')),
+              TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: 'Full Name')),
+              TextField(
+                  controller: emailController,
+                  decoration: const InputDecoration(labelText: 'Email')),
+              TextField(
+                  controller: deptController,
+                  decoration: const InputDecoration(labelText: 'Department')),
+              TextField(
+                  controller: roleController,
+                  decoration: const InputDecoration(labelText: 'Job Title')),
+              TextField(
+                  controller: avatarController,
+                  decoration: const InputDecoration(labelText: 'Avatar URL')),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel')),
           FilledButton(
             onPressed: () async {
               await _service.createEmployee(
                 fullName: nameController.text.trim(),
                 email: emailController.text.trim(),
-                department: deptController.text.trim().isEmpty ? 'General' : deptController.text.trim(),
-                jobTitle: roleController.text.trim().isEmpty ? 'Employee' : roleController.text.trim(),
+                department: deptController.text.trim().isEmpty
+                    ? 'General'
+                    : deptController.text.trim(),
+                jobTitle: roleController.text.trim().isEmpty
+                    ? 'Employee'
+                    : roleController.text.trim(),
                 avatarUrl: avatarController.text.trim(),
               );
               await _service.sendLoginLink(emailController.text.trim());
@@ -96,7 +114,8 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
 
     if (created == true) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Employee created and login link sent.')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Employee created and login link sent.')));
       await _loadEmployees();
     }
   }
@@ -106,7 +125,8 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_error != null) return Center(child: Text(_error!));
 
-    final active = _employees.where((e) => e.status.toLowerCase() == 'active').length;
+    final active =
+        _employees.where((e) => e.status.toLowerCase() == 'active').length;
     final departments = _employees.map((e) => e.department).toSet().length;
 
     return Padding(
@@ -120,7 +140,8 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Employee Directory', style: Theme.of(context).textTheme.headlineSmall),
+                    Text('Employee Directory',
+                        style: Theme.of(context).textTheme.headlineSmall),
                     const SizedBox(height: 8),
                     Text(
                       'Search teammates, review departments, and quickly access employee profiles.',
@@ -141,9 +162,18 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
             spacing: 12,
             runSpacing: 12,
             children: [
-              _StatCard(title: 'Total Employees', value: '${_employees.length}', icon: Icons.people_alt_outlined),
-              _StatCard(title: 'Active', value: '$active', icon: Icons.verified_user_outlined),
-              _StatCard(title: 'Departments', value: '$departments', icon: Icons.apartment_outlined),
+              _StatCard(
+                  title: 'Total Employees',
+                  value: '${_employees.length}',
+                  icon: Icons.people_alt_outlined),
+              _StatCard(
+                  title: 'Active',
+                  value: '$active',
+                  icon: Icons.verified_user_outlined),
+              _StatCard(
+                  title: 'Departments',
+                  value: '$departments',
+                  icon: Icons.apartment_outlined),
             ],
           ),
           const SizedBox(height: 20),
@@ -158,11 +188,18 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
                         final employee = _employees[index];
                         return ListTile(
                           leading: CircleAvatar(
-                            backgroundImage: employee.avatarUrl.isEmpty ? null : NetworkImage(employee.avatarUrl),
-                            child: employee.avatarUrl.isEmpty ? Text(employee.fullName.isEmpty ? 'E' : employee.fullName[0]) : null,
+                            backgroundImage: employee.avatarUrl.isEmpty
+                                ? null
+                                : NetworkImage(employee.avatarUrl),
+                            child: employee.avatarUrl.isEmpty
+                                ? Text(employee.fullName.isEmpty
+                                    ? 'E'
+                                    : employee.fullName[0])
+                                : null,
                           ),
                           title: Text(employee.fullName),
-                          subtitle: Text('${employee.department} • ${employee.jobTitle}\n${employee.email}'),
+                          subtitle: Text(
+                              '${employee.department} • ${employee.jobTitle}\n${employee.email}'),
                           trailing: Chip(label: Text(employee.status)),
                         );
                       },
@@ -176,7 +213,8 @@ class _EmployeeDirectoryScreenState extends State<EmployeeDirectoryScreen> {
 }
 
 class _StatCard extends StatelessWidget {
-  const _StatCard({required this.title, required this.value, required this.icon});
+  const _StatCard(
+      {required this.title, required this.value, required this.icon});
 
   final String title;
   final String value;

@@ -1,3 +1,10 @@
+/// Stub representation of an employee record.
+///
+/// This minimal model includes fields that are commonly used by the
+/// application: an identifier, full name, email, department, job
+/// title, status, and avatar URL. In a full implementation you
+/// might add additional fields and helper methods, or use code
+/// generation to produce this class from your database schema.
 class EmployeeRecord {
   const EmployeeRecord({
     required this.id,
@@ -16,31 +23,4 @@ class EmployeeRecord {
   final String jobTitle;
   final String status;
   final String avatarUrl;
-
-  factory EmployeeRecord.fromMap(Map<String, dynamic> map) {
-    final workEmail = (map['work_email'] ?? '').toString();
-    final personalEmail = (map['personal_email'] ?? '').toString();
-
-    return EmployeeRecord(
-      id: (map['id'] ?? '').toString(),
-      fullName: (map['full_name'] ?? '').toString(),
-      email: workEmail.isNotEmpty ? workEmail : (map['email'] ?? personalEmail).toString(),
-      department: (map['department'] ?? 'General').toString(),
-      jobTitle: (map['job_title'] ?? 'Employee').toString(),
-      status: (map['employment_status'] ?? map['status'] ?? 'active').toString(),
-      avatarUrl: (map['profile_photo_url'] ?? map['avatar_url'] ?? '').toString(),
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'full_name': fullName,
-      'work_email': email,
-      'department': department,
-      'job_title': jobTitle,
-      'employment_status': status,
-      'profile_photo_url': avatarUrl,
-    };
-  }
 }

@@ -1,3 +1,5 @@
+import 'package:baobab_hr/views/dashboard/employee_dashboard.dart';
+import 'package:baobab_hr/views/dashboard/super_dashboard.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../views/announcements/announcements_feed_screen.dart';

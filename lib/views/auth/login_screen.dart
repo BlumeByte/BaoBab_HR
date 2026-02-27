@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/profile_provider.dart';
 import '../../core/router/route_names.dart';
 
+/// A simple login screen for both employees and administrators.
+///
+/// This widget collects the user's email and password and delegates the
+/// authentication to the [AuthProvider]. Upon successful login it
+/// determines which dashboard to navigate to based on the user's role.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -26,7 +32,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-
     return Scaffold(
       body: Center(
         child: Card(
@@ -75,11 +80,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                 await context
                                     .read<ProfileProvider>()
                                     .loadProfile();
-                                context.go(RouteNames.dashboard);
+                                // Navigate to the appropriate home route based on the user's role.
+                                final home =
+                                    _homeRoute(context.read<AuthProvider>());
+                                context.go(home);
                               }
-
-                              context
-                                  .go(_homeRoute(context.read<AuthProvider>()));
                             },
                       child: auth.isLoading
                           ? const SizedBox(
@@ -97,5 +102,12 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  /// Returns the dashboard route for the current user based on their role.
+  String _homeRoute(AuthProvider auth) {
+    if (auth.isSuperAdmin) return RouteNames.superDashboard;
+    if (auth.isHrAdmin) return RouteNames.hrDashboard;
+    return RouteNames.employeeDashboard;
   }
 }
