@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "633599694485",
+    "project_id": "baobab-hr",
+    "storage_bucket": "baobab-hr.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:633599694485:android:dd34cd7dd0519bc800ed9c",
+        "android_client_info": {
+          "package_name": "com.blumebyte.baobabhr"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAc-bxz4hLp1qoWfNkPAe8Y3t62KS9h--0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
