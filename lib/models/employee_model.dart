@@ -1,4 +1,3 @@
-/// Employee model
 class EmployeeRecord {
   const EmployeeRecord({
     required this.id,
@@ -18,15 +17,30 @@ class EmployeeRecord {
   final String status;
   final String avatarUrl;
 
-  factory EmployeeRecord.fromJson(Map<String, dynamic> json) {
+  factory EmployeeRecord.fromMap(Map<String, dynamic> map) {
+    final workEmail = (map['work_email'] ?? '').toString();
+    final personalEmail = (map['personal_email'] ?? '').toString();
+
     return EmployeeRecord(
-      id: json['id'] ?? '',
-      fullName: json['full_name'] ?? '',
-      email: json['email'] ?? '',
-      department: json['department'] ?? '',
-      jobTitle: json['job_title'] ?? '',
-      status: json['status'] ?? 'active',
-      avatarUrl: json['avatar_url'] ?? '',
+      id: (map['id'] ?? '').toString(),
+      fullName: (map['full_name'] ?? '').toString(),
+      email: workEmail.isNotEmpty ? workEmail : (map['email'] ?? personalEmail).toString(),
+      department: (map['department'] ?? 'General').toString(),
+      jobTitle: (map['job_title'] ?? 'Employee').toString(),
+      status: (map['employment_status'] ?? map['status'] ?? 'active').toString(),
+      avatarUrl: (map['profile_photo_url'] ?? map['avatar_url'] ?? '').toString(),
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'full_name': fullName,
+      'work_email': email,
+      'department': department,
+      'job_title': jobTitle,
+      'employment_status': status,
+      'profile_photo_url': avatarUrl,
+    };
   }
 }

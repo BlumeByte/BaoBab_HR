@@ -1,8 +1,8 @@
-import 'package:baobab_hr/core/services/super_admin_service.dart';
 import 'package:flutter/material.dart';
+
 import '../shared/module_screen_scaffold.dart';
 
-class AuditLogsScreen extends StatefulWidget {
+class AuditLogsScreen extends StatelessWidget {
   const AuditLogsScreen({super.key});
 
   @override
@@ -22,13 +22,13 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
 
   Future<void> _load() async {
     try {
-      final rows = await _service.fetchAuditLogs(limit: 50);
+      final rows = await _service.fetchAuditLogs();
       if (!mounted) return;
       setState(() {
         _rows = rows;
         _loading = false;
       });
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
       setState(() => _loading = false);
     }
@@ -38,8 +38,7 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
   Widget build(BuildContext context) {
     return ModuleScreenScaffold(
       title: 'Audit Logs',
-      description:
-          'Review configuration and data-access changes in a single log.',
+      description: 'Review configuration and data-access changes in a single log.',
       stats: const [
         StatItem('Active', '128', Icons.groups_outlined),
         StatItem('Pending', '14', Icons.pending_actions_outlined),

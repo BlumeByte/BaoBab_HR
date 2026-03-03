@@ -1,11 +1,8 @@
-import 'package:baobab_hr/models/employee_model.dart';
 import 'package:flutter/material.dart';
 
 import '../shared/module_screen_scaffold.dart';
-import '../../core/services/employee_service.dart';
 
-/// Displays an organizational chart for the current company.
-class OrgChartScreen extends StatefulWidget {
+class OrgChartScreen extends StatelessWidget {
   const OrgChartScreen({super.key});
 
   @override
@@ -23,18 +20,12 @@ class _OrgChartScreenState extends State<OrgChartScreen> {
     _load();
   }
 
-  /// Loads the list of employees from the service
-  /// and converts them into EmployeeRecord objects.
   Future<void> _load() async {
     try {
-      final rows =
-          await _employeeService.fetchEmployees(); // List<Map<String, dynamic>>
-      final employeeRecords =
-          rows.map((json) => EmployeeRecord.fromJson(json as Map<String, dynamic>)).toList();
-
+      final rows = await _employeeService.fetchEmployees();
       if (!mounted) return;
       setState(() {
-        _employees = employeeRecords;
+        _employees = rows;
         _loading = false;
       });
     } catch (_) {

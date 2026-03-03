@@ -1,9 +1,8 @@
-// lib/views/employee/employee_profile_screen.dart
-
-import 'package:baobab_hr/models/employee_model.dart';
 import 'package:flutter/material.dart';
+
 import '../../core/services/employee_service.dart';
 import '../../core/services/supabase_service.dart';
+import '../../models/employee_model.dart';
 
 class EmployeeProfileScreen extends StatefulWidget {
   const EmployeeProfileScreen({super.key});
@@ -25,11 +24,7 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
   }
 
   Future<void> _load() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-
+    if (!_loading) return;
     try {
       final email = SupabaseService.client.auth.currentUser?.email;
       if (email == null || email.isEmpty) {
@@ -41,23 +36,11 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
       }
 
       final result = await _service.fetchEmployeeByEmail(email);
-
-      if (!mounted) return;
-
-      if (result == null) {
-        setState(() {
-          _error = 'No employee record found for your account yet.';
-          _loading = false;
-        });
-        return;
-      }
-
       setState(() {
         _employee = result;
         _loading = false;
       });
     } catch (e) {
-      if (!mounted) return;
       setState(() {
         _error = 'Unable to load profile: $e';
         _loading = false;
@@ -75,6 +58,10 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
       return Center(child: Text(_error!));
     }
 
+    if (_employee == null) {
+      return const Center(child: Text('No employee record found for your account yet.'));
+    }
+
     final employee = _employee!;
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -86,26 +73,12 @@ class _EmployeeProfileScreenState extends State<EmployeeProfileScreen> {
             children: [
               Row(
                 children: [
-                  CircleAvatar(
-                    radius: 34,
-                    backgroundImage: employee.avatarUrl.isNotEmpty
-                        ? NetworkImage(employee.avatarUrl)
-                        : null,
-                    child: employee.avatarUrl.isEmpty
-                        ? Text(
-                            employee.fullName.isNotEmpty
-                                ? employee.fullName[0]
-                                : 'E',
-                            style: const TextStyle(fontSize: 24),
-                          )
-                        : null,
-                  ),
+                  CircleAvatar(radius: 34, backgroundImage: NetworkImage(employee.avatarUrl)),
                   const SizedBox(width: 16),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(employee.fullName,
-                          style: Theme.of(context).textTheme.headlineSmall),
+                      Text(employee.fullName, style: Theme.of(context).textTheme.headlineSmall),
                       Text(employee.email),
                     ],
                   ),
